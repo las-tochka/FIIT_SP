@@ -1,49 +1,62 @@
 #include <not_implemented.h>
 #include "../include/allocator_global_heap.h"
 
-allocator_global_heap::allocator_global_heap()
+allocator_global_heap::allocator_global_heap() = default; // стандартные
+
+allocator_global_heap::~allocator_global_heap() = default; // мьютект работает сам, доп настройка не требуется
+
+allocator_global_heap::allocator_global_heap(const allocator_global_heap& other)
 {
-    throw not_implemented("allocator_global_heap::allocator_global_heap()", "your code should be here...");
+    // ничего копировать не нужно, да и в нем нет смысла
 }
 
-[[nodiscard]] void *allocator_global_heap::do_allocate_sm(
-    size_t size)
+allocator_global_heap& allocator_global_heap::operator=(const allocator_global_heap& other)
 {
-    throw not_implemented("[[nodiscard]] void *allocator_global_heap::do_allocate_sm(size_t)", "your code should be here...");
+    if (this != &other)
+    {
+        // ничего копировать не нужно
+    }
+    return *this;
 }
 
-void allocator_global_heap::do_deallocate_sm(
-    void *at)
+allocator_global_heap::allocator_global_heap(allocator_global_heap&& other) noexcept
 {
-    throw not_implemented("void allocator_global_heap::do_deallocate_sm(void *)", "your code should be here...");
+    // ничего переносить не нужно
 }
 
-allocator_global_heap::~allocator_global_heap()
+allocator_global_heap& allocator_global_heap::operator=(allocator_global_heap&& other) noexcept
 {
-    throw not_implemented("allocator_global_heap::~allocator_global_heap()", "your code should be here...");
+    if (this != &other)
+    {
+        // ничего переносить не нужно
+    }
+    return *this;
 }
 
-allocator_global_heap::allocator_global_heap(const allocator_global_heap &other)
+void* allocator_global_heap::do_allocate_sm(size_t size)
 {
-    throw not_implemented("allocator_global_heap::allocator_global_heap(const allocator_global_heap &other)", "your code should be here...");
+    std::lock_guard<std::mutex> lock(mtx); // захват мьютекса
+
+    if (size == 0) // 0 невалиден и непредскажуем, зависит от компилятора
+        size = 1;
+
+    return ::operator new(size); // при ошибке вернет std::bad_alloc и с ним тоже можно работать, точнее обработать на след этапе
+    // мьютекс освобождается автоматически
 }
 
-allocator_global_heap &allocator_global_heap::operator=(const allocator_global_heap &other)
+// 
+
+void allocator_global_heap::do_deallocate_sm(void* at)
 {
-    throw not_implemented("allocator_global_heap &allocator_global_heap::operator=(const allocator_global_heap &other)", "your code should be here...");
+    std::lock_guard<std::mutex> lock(mtx); // ф-ция автоматическая освобождать не надо
+
+    if (at == nullptr)
+        return;
+
+    ::operator delete(at);
 }
 
-bool allocator_global_heap::do_is_equal(const std::pmr::memory_resource &other) const noexcept
+bool allocator_global_heap::do_is_equal(const std::pmr::memory_resource& other) const noexcept
 {
-    throw not_implemented("bool allocator_global_heap::do_is_equal(const std::pmr::memory_resource &other) const noexcept", "your code should be here...");
-}
-
-allocator_global_heap::allocator_global_heap(allocator_global_heap &&other) noexcept
-{
-    throw not_implemented("allocator_global_heap::allocator_global_heap(allocator_global_heap &&) noexcept", "your code should be here...");
-}
-
-allocator_global_heap &allocator_global_heap::operator=(allocator_global_heap &&other) noexcept
-{
-    throw not_implemented("allocator_global_heap &allocator_global_heap::operator=(allocator_global_heap &&) noexcept", "your code should be here...");
+    return dynamic_cast<const allocator_global_heap*>(&other) != nullptr;
 }

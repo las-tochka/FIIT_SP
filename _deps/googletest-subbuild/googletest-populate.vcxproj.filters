@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\MyProjects\Sisprog_4\FIIT_SP\_deps\googletest-subbuild\CMakeFiles\2c50cc22fe29cc1486a0a919e30a0776\googletest-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\MyProjects\Sisprog_4\FIIT_SP\_deps\googletest-subbuild\CMakeFiles\2c50cc22fe29cc1486a0a919e30a0776\googletest-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\MyProjects\Sisprog_4\FIIT_SP\_deps\googletest-subbuild\CMakeFiles\2c50cc22fe29cc1486a0a919e30a0776\googletest-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\MyProjects\Sisprog_4\FIIT_SP\_deps\googletest-subbuild\CMakeFiles\2c50cc22fe29cc1486a0a919e30a0776\googletest-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\MyProjects\Sisprog_4\FIIT_SP\_deps\googletest-subbuild\CMakeFiles\2c50cc22fe29cc1486a0a919e30a0776\googletest-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\MyProjects\Sisprog_4\FIIT_SP\_deps\googletest-subbuild\CMakeFiles\2c50cc22fe29cc1486a0a919e30a0776\googletest-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\MyProjects\Sisprog_4\FIIT_SP\_deps\googletest-subbuild\CMakeFiles\2c50cc22fe29cc1486a0a919e30a0776\googletest-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\MyProjects\Sisprog_4\FIIT_SP\_deps\googletest-subbuild\CMakeFiles\2c50cc22fe29cc1486a0a919e30a0776\googletest-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\MyProjects\Sisprog_4\FIIT_SP\_deps\googletest-subbuild\CMakeFiles\a47b10609ed178db2e2900fc405299be\googletest-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\MyProjects\Sisprog_4\FIIT_SP\_deps\googletest-subbuild\CMakeFiles\fd307c624441c92ab64d3342fe416a42\googletest-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\MyProjects\Sisprog_4\FIIT_SP\_deps\googletest-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\MyProjects\Sisprog_4\FIIT_SP\_deps\googletest-subbuild\CMakeFiles\googletest-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{AB87C948-C566-3003-905B-EB378729CB33}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
