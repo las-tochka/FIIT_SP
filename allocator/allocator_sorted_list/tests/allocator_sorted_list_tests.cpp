@@ -184,6 +184,8 @@ int main(
     int argc,
     char **argv)
 {
+    ::testing::GTEST_FLAG(print_time) = true;
+    ::testing::GTEST_FLAG(catch_exceptions) = false;
     testing::InitGoogleTest(&argc, argv);
     
     return RUN_ALL_TESTS();

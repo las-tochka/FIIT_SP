@@ -6,6 +6,7 @@
 #include <pp_allocator.h>
 #include <iterator>
 #include <mutex>
+#include <vector>
 
 class allocator_boundary_tags final :
     public smart_mem_resource,
