@@ -6,7 +6,6 @@
 #include <allocator_with_fit_mode.h>
 #include <iterator>
 #include <mutex>
-#include <iostream>
 
 class allocator_sorted_list final:
     public smart_mem_resource,
