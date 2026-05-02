@@ -51,15 +51,29 @@ allocator_boundary_tags::allocator_boundary_tags(
         sizeof(std::mutex))) = space_size;
 
     void* first = (char*)_trusted_memory + allocator_metadata_size;
+    size_t available_size = space_size - allocator_metadata_size;
 
-    *((size_t*)first) = space_size - allocator_metadata_size;
-    *((bool*)((char*)first + sizeof(size_t))) = true;
+    *((size_t*)first) = available_size;  // размер блока
+    // Инициализация указателей prev/next
+    *((void**)((char*)first + sizeof(size_t))) = nullptr;  // prev
+    *((void**)((char*)first + sizeof(size_t) + sizeof(void*))) = nullptr;  // next
+    *((bool*)((char*)first + sizeof(size_t) + sizeof(void*) * 2)) = true;  // is_free = true
 }
 
 [[nodiscard]] void *allocator_boundary_tags::do_allocate_sm(
     size_t size)
 {
-     std::mutex* m = (std::mutex*)((char*)_trusted_memory + sizeof(allocator_with_fit_mode::fit_mode));
+    size_t total_size = *((size_t*)((char*)_trusted_memory +
+    sizeof(allocator_with_fit_mode::fit_mode) +
+    sizeof(std::mutex)));
+    
+    // Учитываем, что для любого блока нужно место под метаданные
+    size_t min_required = size + sizeof(size_t) + sizeof(void*) * 3;
+    
+    if (min_required > total_size - allocator_metadata_size) {
+        throw std::bad_alloc();  // вместо return nullptr
+    }
+    std::mutex* m = (std::mutex*)((char*)_trusted_memory + sizeof(allocator_with_fit_mode::fit_mode));
     std::lock_guard<std::mutex> lock(*m);
 
     void* best = nullptr;
@@ -132,8 +146,7 @@ void allocator_boundary_tags::do_deallocate_sm(
     std::mutex* m = (std::mutex*)((char*)_trusted_memory + sizeof(allocator_with_fit_mode::fit_mode));
     std::lock_guard<std::mutex> lock(*m);
 
-    char* block = (char*)at - (sizeof(size_t) + sizeof(bool));
-
+    char* block = (char*)at - (sizeof(size_t) + sizeof(void*) * 3);
     *((bool*)(block + sizeof(size_t))) = true;
 
     // simple merge forward
