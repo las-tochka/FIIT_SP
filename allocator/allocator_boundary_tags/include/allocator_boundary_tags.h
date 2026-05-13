@@ -118,4 +118,40 @@ private:
     boundary_iterator end() const noexcept;
 };
 
+struct block_header
+{
+    size_t size_and_flags;
+    void* prev;
+    void* next;
+    void* owner;
+};
+
+constexpr size_t OCCUPIED_MASK = 1ULL;
+
+inline size_t block_size(block_header* h)
+{
+    return h->size_and_flags & ~OCCUPIED_MASK;
+}
+
+inline bool occupied(block_header* h)
+{
+    return h->size_and_flags & OCCUPIED_MASK;
+}
+
+inline void set_occupied(block_header* h, bool value)
+{
+    if (value)
+        h->size_and_flags |= OCCUPIED_MASK;
+    else
+        h->size_and_flags &= ~OCCUPIED_MASK;
+}
+
+inline void set_size(block_header* h, size_t sz)
+{
+    bool occ = occupied(h);
+    h->size_and_flags = sz;
+    set_occupied(h, occ);
+}
+
+
 #endif //MATH_PRACTICE_AND_OPERATING_SYSTEMS_ALLOCATOR_ALLOCATOR_BOUNDARY_TAGS_H
