@@ -47,6 +47,7 @@ private:
         bsptree_node_term* _next;
         boost::container::static_vector<tree_data_type, maximum_keys_in_node + 1> _data;
         bsptree_node_term() noexcept;
+        
     };
 
     struct bsptree_node_middle : public bsptree_node_base
