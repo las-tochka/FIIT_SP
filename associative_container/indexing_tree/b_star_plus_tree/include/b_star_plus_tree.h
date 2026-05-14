@@ -25,7 +25,7 @@ private:
 
     // TODO: Another restrictions
     static constexpr const size_t minimum_keys_in_node = t - 1;
-    static constexpr const size_t maximum_keys_in_node = 2 * t - 1;
+    static constexpr const size_t maximum_keys_in_node = std::ceil(t / 2.0);
 
     // region comparators declaration
 
@@ -282,6 +282,7 @@ private:
     void split_internal_child(bsptree_node_middle* parent, size_t child_index);
     void insert_nonfull(bsptree_node_base* node, tree_data_type&& data);
     void relink_leaves();
+    void debug_print_tree() const;
     static void collect_leaves_inorder(bsptree_node_base* n, std::vector<bsptree_node_term*>& out);
     // endregion helpers declaration
 };
@@ -842,6 +843,7 @@ typename BSP_tree<tkey, tvalue, compare, t>::bsptree_iterator BSP_tree<tkey, tva
 
 // region BSP_tree helpers implementations
 
+//!
 template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
 size_t BSP_tree<tkey, tvalue, compare, t>::key_index(bsptree_node_middle* node, const tkey& key) const
 {
@@ -1033,6 +1035,7 @@ void BSP_tree<tkey, tvalue, compare, t>::shrink_root_if_needed()
     }
 }
 
+// !
 template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
 void BSP_tree<tkey, tvalue, compare, t>::erase_node(bsptree_node_middle* node, const tkey& k)
 {
@@ -1148,6 +1151,7 @@ void BSP_tree<tkey, tvalue, compare, t>::insert_into_middle(
     parent->_pointers.insert(parent->_pointers.begin() + child_idx + 1, right_child);
 }
 
+//!
 template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
 void BSP_tree<tkey, tvalue, compare, t>::maybe_split_root()
 {
@@ -1173,13 +1177,14 @@ void BSP_tree<tkey, tvalue, compare, t>::maybe_split_root()
         split_internal_child(new_root, 0);
     }
 }
-
+//!
 template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
 void BSP_tree<tkey, tvalue, compare, t>::split_leaf_child(bsptree_node_middle* parent, size_t i)
 {
     auto* leaf = static_cast<bsptree_node_term*>(parent->_pointers[i]);
     auto* new_right = _allocator.template new_object<bsptree_node_term>();
-    const size_t split_at = t - 1;
+    const size_t split_at = t;
+    debug_print_tree();
     for (size_t j = split_at; j < leaf->_data.size(); ++j) {
         new_right->_data.push_back(std::move(leaf->_data[j]));
     }
@@ -1188,8 +1193,10 @@ void BSP_tree<tkey, tvalue, compare, t>::split_leaf_child(bsptree_node_middle* p
     leaf->_next = new_right;
     tkey sep = new_right->_data.front().first;
     insert_into_middle(parent, i, std::move(sep), new_right);
+    debug_print_tree();
 }
 
+//!
 template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
 void BSP_tree<tkey, tvalue, compare, t>::split_internal_child(bsptree_node_middle* parent, size_t i)
 {
@@ -1207,6 +1214,7 @@ void BSP_tree<tkey, tvalue, compare, t>::split_internal_child(bsptree_node_middl
     insert_into_middle(parent, i, std::move(mid_key), y);
 }
 
+//!
 template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
 void BSP_tree<tkey, tvalue, compare, t>::insert_nonfull(bsptree_node_base* x, tree_data_type&& data)
 {
@@ -1222,20 +1230,24 @@ void BSP_tree<tkey, tvalue, compare, t>::insert_nonfull(bsptree_node_base* x, tr
     auto* mid = static_cast<bsptree_node_middle*>(x);
     size_t i = key_index(mid, k);
     bsptree_node_base* ch = mid->_pointers[i];
-    const bool full = ch->_is_terminated
-        ? static_cast<bsptree_node_term*>(ch)->_data.size() == maximum_keys_in_node
-        : static_cast<bsptree_node_middle*>(ch)->_keys.size() == maximum_keys_in_node;
+    
+    // Для B*+: проверяем, станет ли узел полным ПОСЛЕ вставки
+    const bool will_be_full = ch->_is_terminated
+        ? static_cast<bsptree_node_term*>(ch)->_data.size() == maximum_keys_in_node - 1
+        : static_cast<bsptree_node_middle*>(ch)->_keys.size() == maximum_keys_in_node - 1;
 
-    if (full) {
+    if (will_be_full) {
         if (ch->_is_terminated) {
             split_leaf_child(mid, i);
         } else {
             split_internal_child(mid, i);
         }
+        // После split нужно пересчитать индекс, так как ключи изменились
         i = key_index(mid, k);
+        ch = mid->_pointers[i];  // ← важно: обновить ch после split
     }
 
-    insert_nonfull(mid->_pointers[i], std::move(data));
+    insert_nonfull(ch, std::move(data));
 }
 
 template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
@@ -1251,6 +1263,7 @@ void BSP_tree<tkey, tvalue, compare, t>::collect_leaves_inorder(bsptree_node_bas
     }
 }
 
+//!
 template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
 void BSP_tree<tkey, tvalue, compare, t>::relink_leaves()
 {
@@ -1266,6 +1279,23 @@ void BSP_tree<tkey, tvalue, compare, t>::relink_leaves()
     if (!leaves.empty()) {
         leaves.back()->_next = nullptr;
     }
+}
+
+// После определения класса BSP_tree, добавьте:
+template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
+void BSP_tree<tkey, tvalue, compare, t>::debug_print_tree() const
+{
+    std::cout << "\n=== Tree (size=" << _size << ") ===\n";
+    auto it = this->begin();
+    size_t count = 0;
+    while (it != this->end()) {
+        std::cout << "  [" << it->first << "]=" << it->second 
+                  << " (idx:" << it.index() << ")\n";
+        ++it;
+        ++count;
+        if (count > 100) break; // защита от бесконечного цикла
+    }
+    std::cout << "========================\n";
 }
 
 // endregion BSP_tree helpers implementations
