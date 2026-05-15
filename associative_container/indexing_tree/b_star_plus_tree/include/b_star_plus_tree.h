@@ -284,6 +284,10 @@ private:
     void split_internal_child(bsptree_node_middle* parent, size_t child_index);
     void insert_nonfull(bsptree_node_base* node, tree_data_type&& data);
     void relink_leaves();
+    void rebuild_separator_keys();
+    void rebuild_separator_keys_recursive(bsptree_node_base* node);
+
+    tkey subtree_first_key(bsptree_node_base* node) const;
     static void collect_leaves_inorder(bsptree_node_base* n, std::vector<bsptree_node_term*>& out);
     // endregion helpers declaration
 };
@@ -738,29 +742,7 @@ BSP_tree<tkey, tvalue, compare, t>::insert(tree_data_type&& data)
     ++_size;
 
     maybe_split_root();
-    if (_root) {
-        auto first_key = [&](bsptree_node_base* node) -> tkey {
-            while (!node->_is_terminated) {
-                node = static_cast<bsptree_node_middle*>(node)->_pointers.front();
-            }
-            return static_cast<bsptree_node_term*>(node)->_data.front().first;
-        };
-
-        auto refresh_keys = [&](auto&& self, bsptree_node_base* node) -> void {
-            if (!node || node->_is_terminated) {
-                return;
-            }
-            auto* mid = static_cast<bsptree_node_middle*>(node);
-            for (auto* child : mid->_pointers) {
-                self(self, child);
-            }
-            mid->_keys.clear();
-            for (size_t i = 1; i < mid->_pointers.size(); ++i) {
-                mid->_keys.push_back(first_key(mid->_pointers[i]));
-            }
-        };
-        refresh_keys(refresh_keys, _root);
-    }
+    rebuild_separator_keys();
     relink_leaves();
     return {find(kcopy), true};
 }
@@ -866,6 +848,51 @@ typename BSP_tree<tkey, tvalue, compare, t>::bsptree_iterator BSP_tree<tkey, tva
 // endregion BSP_tree modifiers implementations
 
 // region BSP_tree helpers implementations
+
+template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
+void BSP_tree<tkey, tvalue, compare, t>::rebuild_separator_keys()
+{
+    if (!_root || _root->_is_terminated) {
+        return;
+    }
+
+    rebuild_separator_keys_recursive(_root);
+}
+
+template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
+void BSP_tree<tkey, tvalue, compare, t>::rebuild_separator_keys_recursive(
+    bsptree_node_base* node)
+{
+    if (!node || node->_is_terminated) {
+        return;
+    }
+
+    auto* middle = static_cast<bsptree_node_middle*>(node);
+
+    for (auto* child : middle->_pointers) {
+        rebuild_separator_keys_recursive(child);
+    }
+
+    middle->_keys.clear();
+
+    for (size_t i = 1; i < middle->_pointers.size(); ++i) {
+        middle->_keys.push_back(
+            subtree_first_key(middle->_pointers[i]));
+    }
+}
+
+template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
+tkey BSP_tree<tkey, tvalue, compare, t>::subtree_first_key(
+    bsptree_node_base* node) const
+{
+    while (!node->_is_terminated) {
+        node = static_cast<bsptree_node_middle*>(node)
+                   ->_pointers.front();
+    }
+
+    return static_cast<bsptree_node_term*>(node)
+        ->_data.front().first;
+}
 
 template<typename tkey, typename tvalue, comparator<tkey> compare, std::size_t t>
 size_t BSP_tree<tkey, tvalue, compare, t>::key_index(bsptree_node_middle* node, const tkey& key) const
