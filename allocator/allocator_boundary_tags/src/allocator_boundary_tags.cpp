@@ -252,6 +252,9 @@ allocator_boundary_tags::operator=(allocator_boundary_tags&& other) noexcept
     if (this == &other)
         return *this;
 
+    void* log_old_this_memory  = _trusted_memory;
+    void* log_old_other_memory = other._trusted_memory;
+
     this->~allocator_boundary_tags();
 
     _trusted_memory = other._trusted_memory;
