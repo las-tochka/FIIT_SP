@@ -1,5 +1,6 @@
 #include "../include/allocator_boundary_tags.h"
 
+// .\build\allocator\allocator_boundary_tags\tests\Debug\sys_prog_allctr_allctr_bndr_tgs_tests.exe
 allocator_boundary_tags::~allocator_boundary_tags()
 {
     if (_trusted_memory == nullptr)
@@ -252,8 +253,8 @@ allocator_boundary_tags::operator=(allocator_boundary_tags&& other) noexcept
     if (this == &other)
         return *this;
 
-    void* log_old_this_memory  = _trusted_memory;
-    void* log_old_other_memory = other._trusted_memory;
+    auto log_old_memory = _trusted_memory;
+    auto log_old_parent = *reinterpret_cast<std::pmr::memory_resource**>(_trusted_memory);
 
     this->~allocator_boundary_tags();
 
