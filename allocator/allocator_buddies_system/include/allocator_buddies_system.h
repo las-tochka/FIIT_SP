@@ -140,4 +140,24 @@ private:
     
 };
 
+namespace
+{
+    inline size_t pow2(size_t k)
+    {
+        return 1ull << k;
+    }
+
+    constexpr size_t space_offset = 0;
+
+    constexpr size_t parent_offset =
+        space_offset + sizeof(size_t);
+
+    constexpr size_t fit_mode_offset =
+        parent_offset + sizeof(std::pmr::memory_resource*);
+
+    constexpr size_t mutex_offset =
+        fit_mode_offset + sizeof(
+            allocator_with_fit_mode::fit_mode);
+}
+
 #endif //MATH_PRACTICE_AND_OPERATING_SYSTEMS_ALLOCATOR_ALLOCATOR_BUDDIES_SYSTEM_H

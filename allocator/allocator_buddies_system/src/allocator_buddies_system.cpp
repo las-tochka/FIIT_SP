@@ -4,26 +4,6 @@
 #include <new>
 #include "../include/allocator_buddies_system.h"
 
-namespace
-{
-    inline size_t pow2(size_t k)
-    {
-        return 1ull << k;
-    }
-
-    constexpr size_t space_offset = 0;
-
-    constexpr size_t parent_offset =
-        space_offset + sizeof(size_t);
-
-    constexpr size_t fit_mode_offset =
-        parent_offset + sizeof(std::pmr::memory_resource*);
-
-    constexpr size_t mutex_offset =
-        fit_mode_offset + sizeof(
-            allocator_with_fit_mode::fit_mode);
-}
-
 allocator_buddies_system::~allocator_buddies_system()
 {
     if (!_trusted_memory)
@@ -73,15 +53,8 @@ allocator_buddies_system::allocator_buddies_system(
     std::pmr::memory_resource* parent_allocator,
     allocator_with_fit_mode::fit_mode allocate_fit_mode)
 {
-    // тест falsePositiveTests.test1
-    // allocator_buddies_system(1) должен бросать exception
     if (space_size < 2)
         throw std::logic_error("space_size too small");
-
-    // ВАЖНО:
-    // buddy allocator обязан работать только с power of 2
-    // но тесты apparently передают НЕ степень двойки
-    // поэтому не throw, а округляем вверх
 
     size_t real_size = 1;
     while (real_size < space_size)
@@ -94,12 +67,6 @@ allocator_buddies_system::allocator_buddies_system(
         : ::operator new(space_size);
 
     auto* mem = reinterpret_cast<char*>(_trusted_memory);
-
-    // layout:
-    // [size_t total_size]
-    // [parent allocator ptr]
-    // [fit_mode]
-    // [root block]
 
     *reinterpret_cast<size_t*>(mem) = space_size;
 
@@ -148,7 +115,6 @@ allocator_buddies_system::allocator_buddies_system(
     {
         auto* blk = reinterpret_cast<block_metadata*>(cur);
 
-        // защита от мусора
         if (blk->size == 0 || blk->size > 60)
             break;
 
@@ -307,7 +273,6 @@ allocator_buddies_system::get_blocks_info_inner() const
         auto* blk =
             reinterpret_cast<block_metadata*>(cur);
 
-        // защита от мусора
         if (blk->size == 0 || blk->size > 60)
             break;
 
