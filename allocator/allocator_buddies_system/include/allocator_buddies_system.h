@@ -45,6 +45,7 @@ private:
     };
 
     void *_trusted_memory;
+    mutable std::mutex _mutex;
 
     /**
      * TODO: You must improve it for alignment support
